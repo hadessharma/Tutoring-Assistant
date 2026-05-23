@@ -1,14 +1,14 @@
 # Tutoring Assistant - Project Tasks
 
 ## Phase 1: Project Initialization
-- [ ] Rename `PRD.txt` to `PRD.md`
-- [ ] Initialize Git repository
-- [ ] Create `task.md` for tracking progress (Done)
+- [X] Rename `PRD.txt` to `PRD.md`
+- [X] Initialize Git repository
+- [X] Create `task.md` for tracking progress (Done)
 
 ## Phase 2: Frontend Setup (Next.js)
-- [ ] Initialize Next.js project with TypeScript and Tailwind CSS
-- [ ] Clean up boilerplate code
-- [ ] Set up basic routing and layout
+- [X] Initialize Next.js project with TypeScript and Tailwind CSS
+- [X] Clean up boilerplate code
+- [X] Set up basic routing and layout
 
 ## Phase 3: Backend Setup (Python/FastAPI)
 - [ ] Initialize Python environment (venv)

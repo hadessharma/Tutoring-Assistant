@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-maroon: #8C1D40;
+  --color-primary-gold: #FFC627;
+  --color-primary-black: #000000;
+  --color-primary-white: #FFFFFF;
+}
+
+body {
+  background-color: var(--color-primary-black);
+  color: var(--color-primary-white);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(140, 29, 64, 0.2), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(255, 198, 39, 0.15), transparent 40%);
+  background-attachment: fixed;
+}
