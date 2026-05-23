@@ -11,14 +11,14 @@
 - [X] Set up basic routing and layout
 
 ## Phase 3: Backend Setup (Python/FastAPI)
-- [ ] Initialize Python environment (venv)
-- [ ] Install FastAPI, Uvicorn, LangChain, and other dependencies
-- [ ] Create basic FastAPI server structure
+- [X] Initialize Python environment (venv)
+- [X] Install FastAPI, Uvicorn, LangChain, and other dependencies
+- [X] Create basic FastAPI server structure
 
 ## Phase 4: Database Setup (Supabase/PostgreSQL)
-- [ ] Set up Supabase/Neon project
-- [ ] Enable `pgvector` extension
-- [ ] Execute SQL DDL to create tables (`course_knowledge_base`, `tutoring_sessions`, `interaction_logs`)
+- [X] Set up Supabase/Neon project
+- [X] Enable `pgvector` extension
+- [X] Execute SQL DDL to create tables (`course_knowledge_base`, `tutoring_sessions`, `interaction_logs`)
 
 ## Phase 5: Core Features Implementation
 - [ ] **Feature 1: Course Selection UI**
