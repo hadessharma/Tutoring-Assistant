@@ -1,6 +1,7 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage, AIMessage
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,20 +34,35 @@ Respond with only 'SAFE' if the response is compliant and follows the Socratic m
 
 from .rag_service import retrieve_course_context
 
-async def generate_socratic_response(course_id: str, user_message: str) -> str:
+async def generate_socratic_response(course_id: str, user_message: str, history: list[dict] = None) -> str:
     """Pre-processing guardrail and response generation."""
+    if history is None:
+        history = []
+        
     # Retrieve context from vector db
     context = await retrieve_course_context(course_id, user_message)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", SOCRATIC_SYSTEM_PROMPT),
+        MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{user_message}")
     ])
+    
+    # Limit context to the last 10 messages (5 turns) to prevent context loss,
+    # maintain Socratic guardrails priority, and reduce token usage.
+    recent_history = history[-10:]
+    chat_history = []
+    for msg in recent_history:
+        if msg.get("role") == "user":
+            chat_history.append(HumanMessage(content=msg.get("content", "")))
+        elif msg.get("role") == "assistant" or msg.get("role") == "model":
+            chat_history.append(AIMessage(content=msg.get("content", "")))
     
     chain = prompt | llm
     response = await chain.ainvoke({
         "course_id": course_id,
         "context": context if context else "No additional context found.",
+        "chat_history": chat_history,
         "user_message": user_message
     })
     

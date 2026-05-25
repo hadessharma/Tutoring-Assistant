@@ -23,6 +23,7 @@ class InitSessionRequest(BaseModel):
 class ChatMessageRequest(BaseModel):
     course_id: str
     message: str
+    history: list[dict] = []  # List of past messages e.g., [{"role": "user", "content": "..."}, ...]
 
 @app.get("/api/health")
 async def health_check():
@@ -49,7 +50,7 @@ async def chat(request: ChatMessageRequest):
     Chat endpoint with pre-processing guardrails and post-processing audit.
     """
     # 1. Pre-processing Guardrails & Generation
-    draft_response = await generate_socratic_response(request.course_id, request.message)
+    draft_response = await generate_socratic_response(request.course_id, request.message, request.history)
     
     # 2. Post-processing Audit
     is_safe = await audit_response(draft_response)

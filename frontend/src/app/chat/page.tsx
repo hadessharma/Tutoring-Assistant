@@ -52,12 +52,18 @@ function ChatContent() {
     setIsLoading(true);
 
     try {
+      const historyPayload = messages.map(msg => ({
+        role: msg.role === "student" ? "user" : "assistant",
+        content: msg.content
+      }));
+
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           course_id: courseId,
-          message: userText
+          message: userText,
+          history: historyPayload
         }),
       });
 
