@@ -20,6 +20,10 @@ app.add_middleware(
 class InitSessionRequest(BaseModel):
     course_id: str
 
+class ChatMessageRequest(BaseModel):
+    course_id: str
+    message: str
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint to ensure server is running."""
@@ -36,6 +40,53 @@ async def init_session(request: InitSessionRequest):
         "course_id": request.course_id,
         "message": f"Session initialized for {request.course_id}. Vector context isolated."
     }
+
+from services.llm_service import generate_socratic_response, audit_response
+
+@app.post("/api/chat")
+async def chat(request: ChatMessageRequest):
+    """
+    Chat endpoint with pre-processing guardrails and post-processing audit.
+    """
+    # 1. Pre-processing Guardrails & Generation
+    draft_response = await generate_socratic_response(request.course_id, request.message)
+    
+    # 2. Post-processing Audit
+    is_safe = await audit_response(draft_response)
+    
+    if not is_safe:
+        return {
+            "status": "error",
+            "message": "I apologize, but I cannot provide a direct answer. Let's work through this step-by-step instead."
+        }
+        
+    return {
+        "status": "success",
+        "response": draft_response
+    }
+
+class CurriculumRequest(BaseModel):
+    course_id: str
+    session_id: str
+
+from services.curriculum_service import generate_curriculum
+
+@app.post("/api/curriculum/generate")
+async def create_curriculum(request: CurriculumRequest):
+    """
+    Generate a markdown-formatted study curriculum based on student weaknesses.
+    """
+    try:
+        curriculum_md = await generate_curriculum(request.course_id, request.session_id)
+        return {
+            "status": "success",
+            "curriculum": curriculum_md
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn

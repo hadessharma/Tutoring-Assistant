@@ -31,3 +31,33 @@ CREATE TABLE interaction_logs (
     detected_weaknesses TEXT[], -- Array of strings mapping student gaps
     logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Vector matching RPC function with course_id filtering
+CREATE OR REPLACE FUNCTION match_course_documents(
+    query_embedding vector(768),
+    match_threshold float,
+    match_count int,
+    filter_course_id varchar
+)
+RETURNS TABLE (
+    chunk_id uuid,
+    document_title varchar,
+    content text,
+    similarity float
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ckb.chunk_id,
+        ckb.document_title,
+        ckb.content,
+        1 - (ckb.embedding <=> query_embedding) AS similarity
+    FROM course_knowledge_base ckb
+    WHERE ckb.course_id = filter_course_id
+      AND 1 - (ckb.embedding <=> query_embedding) > match_threshold
+    ORDER BY ckb.embedding <=> query_embedding
+    LIMIT match_count;
+END;
+$$;
