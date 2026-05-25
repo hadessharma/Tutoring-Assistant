@@ -10,98 +10,9 @@ interface Message {
   content: string;
 }
 
-const renderText = (text: string) => {
-  const codeParts = text.split('`');
-  return codeParts.map((part, i) => {
-    if (i % 2 === 1) {
-      return <code key={i} className="bg-black/30 text-primary-gold px-1.5 py-0.5 rounded text-sm break-words">{part}</code>;
-    }
-    const boldParts = part.split('**');
-    return boldParts.map((bPart, j) => {
-      if (j % 2 === 1) {
-        return <strong key={`${i}-${j}`} className="font-bold">{bPart}</strong>;
-      }
-      const italicParts = bPart.split('*');
-      return italicParts.map((iPart, k) => {
-        if (k % 2 === 1) {
-          return <em key={`${i}-${j}-${k}`} className="italic">{iPart}</em>;
-        }
-        return <span key={`${i}-${j}-${k}`}>{iPart}</span>;
-      });
-    });
-  });
-};
-
-const renderParagraphs = (text: string) => {
-  const lines = text.split('\n');
-  return lines.map((line, idx) => {
-    if (line.trim().startsWith('### ')) {
-      return <h3 key={idx} className="text-lg font-bold mt-4 mb-2">{renderText(line.slice(4))}</h3>;
-    }
-    if (line.trim().startsWith('## ')) {
-      return <h2 key={idx} className="text-xl font-bold mt-5 mb-3">{renderText(line.slice(3))}</h2>;
-    }
-    if (line.trim().startsWith('# ')) {
-      return <h1 key={idx} className="text-2xl font-bold mt-6 mb-4">{renderText(line.slice(2))}</h1>;
-    }
-    if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-      return (
-        <div key={idx} className="flex gap-2 ml-4 mb-1">
-          <span className="text-primary-gold">•</span>
-          <span>{renderText(line.slice(2))}</span>
-        </div>
-      );
-    }
-    const match = line.trim().match(/^(\d+)\.\s+(.*)/);
-    if (match) {
-      return (
-        <div key={idx} className="flex gap-2 ml-4 mb-1">
-          <span className="text-primary-gold font-bold">{match[1]}.</span>
-          <span>{renderText(match[2])}</span>
-        </div>
-      );
-    }
-    if (line.trim() === '') {
-      return <div key={idx} className="h-2"></div>;
-    }
-    return <div key={idx} className="mb-2">{renderText(line)}</div>;
-  });
-};
-
-function MarkdownMessage({ content }: { content: string }) {
-  const blocks = content.split('```');
-  
-  return (
-    <div className="text-sm sm:text-base leading-relaxed space-y-2 w-full break-words">
-      {blocks.map((block, index) => {
-        if (index % 2 === 1) {
-          const lines = block.split('\n');
-          const language = lines[0].trim();
-          const code = lines.slice(1).join('\n');
-          
-          return (
-            <div key={index} className="rounded-lg bg-black/40 overflow-hidden border border-white/10 my-4 shadow-inner max-w-full">
-              {language && (
-                <div className="bg-black/60 px-4 py-1.5 text-xs text-white/50 border-b border-white/10 font-mono">
-                  {language}
-                </div>
-              )}
-              <pre className="p-4 overflow-x-auto text-sm text-zinc-200 font-mono">
-                <code>{code}</code>
-              </pre>
-            </div>
-          );
-        } else {
-          return (
-            <div key={index} className="space-y-1">
-              {renderParagraphs(block)}
-            </div>
-          );
-        }
-      })}
-    </div>
-  );
-}
+import MarkdownMessage from "../../components/MarkdownMessage";
+import ChatHeader from "../../components/ChatHeader";
+import ChatInput from "../../components/ChatInput";
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -195,32 +106,7 @@ function ChatContent() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-primary-maroon/10 blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <header className="flex-none bg-zinc-900/50 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between z-10 shadow-md">
-        <div className="flex items-center gap-4">
-          <Link 
-            href="/"
-            className="p-2 -ml-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </Link>
-          <div>
-            <h1 className="font-bold text-lg text-zinc-100 flex items-center gap-2">
-              Tutoring Session
-              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-primary-maroon/20 text-primary-gold border border-primary-maroon/30">
-                {courseId}
-              </span>
-            </h1>
-            <p className="text-xs text-zinc-400">Strict Socratic Guide enabled</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs text-zinc-400 font-medium">Session Active</span>
-        </div>
-      </header>
+      <ChatHeader courseId={courseId} />
 
       {/* Chat Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth z-10">
@@ -278,46 +164,12 @@ function ChatContent() {
       </main>
 
       {/* Input Area */}
-      <footer className="flex-none p-4 sm:p-6 bg-zinc-900/80 backdrop-blur-lg border-t border-white/10 z-10">
-        <form 
-          onSubmit={handleSend}
-          className="max-w-4xl mx-auto relative flex items-end gap-2"
-        >
-          <div className="relative flex-1 bg-zinc-800/50 rounded-2xl border border-white/10 focus-within:border-primary-gold/50 focus-within:ring-1 focus-within:ring-primary-gold/50 transition-all shadow-inner">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={`Ask a question about ${courseId}...`}
-              className="w-full bg-transparent text-zinc-100 placeholder-zinc-500 rounded-2xl py-4 pl-4 pr-12 min-h-[60px] max-h-32 resize-none focus:outline-none"
-              rows={1}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend(e);
-                }
-              }}
-            />
-            <div className="absolute right-3 bottom-3 text-xs text-zinc-500 pointer-events-none hidden sm:block">
-              Press Enter to send
-            </div>
-          </div>
-          
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="flex-none p-4 rounded-2xl bg-primary-gold text-primary-black font-bold hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-primary-gold focus:ring-offset-2 focus:ring-offset-primary-black transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-gold/20"
-          >
-            <svg className="w-5 h-5 translate-x-0.5 -translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-        </form>
-        <div className="text-center mt-3">
-          <p className="text-[10px] text-zinc-500">
-            Assistant responses are monitored for academic integrity compliance. Direct solutions will not be provided.
-          </p>
-        </div>
-      </footer>
+      <ChatInput 
+        input={input} 
+        setInput={setInput} 
+        handleSend={handleSend} 
+        courseId={courseId} 
+      />
     </div>
   );
 }
