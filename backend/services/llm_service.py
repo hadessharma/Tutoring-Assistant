@@ -5,9 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+api_key = os.environ.get("GEMINI_API_KEY")
+if api_key:
+    os.environ["GOOGLE_API_KEY"] = api_key
+
 # Initialize Gemini models
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.2)
-audit_llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.0)
+llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0.2)
+audit_llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0.0)
 
 SOCRATIC_SYSTEM_PROMPT = """You are a strictly compliant university Tutoring Assistant.
 Your objective is to guide the student to the answer using the Socratic method.
@@ -46,7 +50,10 @@ async def generate_socratic_response(course_id: str, user_message: str) -> str:
         "user_message": user_message
     })
     
-    return response.content
+    content = response.content
+    if isinstance(content, list):
+        content = "".join([str(item.get("text", "")) if isinstance(item, dict) else str(item) for item in content])
+    return content
 
 async def audit_response(ai_response: str) -> bool:
     """Post-processing audit to detect direct answers. Returns True if SAFE, False if VIOLATION."""
@@ -60,5 +67,8 @@ async def audit_response(ai_response: str) -> bool:
         "ai_response": ai_response
     })
     
-    decision = result.content.strip().upper()
+    content = result.content
+    if isinstance(content, list):
+        content = "".join([str(item.get("text", "")) if isinstance(item, dict) else str(item) for item in content])
+    decision = content.strip().upper()
     return 'SAFE' in decision

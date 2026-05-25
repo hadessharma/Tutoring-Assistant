@@ -10,7 +10,10 @@ supabase_key = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
 # Initialize embeddings matching Gemini's 768 dimension output
-embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+api_key = os.environ.get("GEMINI_API_KEY")
+if api_key:
+    os.environ["GOOGLE_API_KEY"] = api_key
+embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
 
 async def generate_and_store_embeddings(course_id: str, document_title: str, content: str):
     """

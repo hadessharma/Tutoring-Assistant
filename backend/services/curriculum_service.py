@@ -10,6 +10,9 @@ supabase_url = os.environ.get("SUPABASE_URL")
 supabase_key = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
+api_key = os.environ.get("GEMINI_API_KEY")
+if api_key:
+    os.environ["GOOGLE_API_KEY"] = api_key
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0.4)
 
 CURRICULUM_PROMPT = """You are an expert curriculum designer for university-level courses.
