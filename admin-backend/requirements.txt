@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+python-multipart
+# Install the shared core module
+-e ../shared-core

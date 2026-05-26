@@ -1,0 +1,7 @@
+setup.py
+tutoring_shared/__init__.py
+tutoring_shared.egg-info/PKG-INFO
+tutoring_shared.egg-info/SOURCES.txt
+tutoring_shared.egg-info/dependency_links.txt
+tutoring_shared.egg-info/requires.txt
+tutoring_shared.egg-info/top_level.txt
