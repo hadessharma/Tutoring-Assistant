@@ -6,7 +6,10 @@ A course-centric, compliant, Socratic tutoring assistant built for university en
 
 This project is designed to be deployed on a 100% free hobby stack:
 - **Frontend:** Next.js / React / Tailwind CSS (Deployable on Vercel)
-- **Backend:** Python / FastAPI / LangChain (Deployable on Render/Koyeb)
+- **Backends:** Python / FastAPI / LangChain (Deployable on Render/Koyeb)
+  - `student-backend`: Handles low-latency chat, RAG retrieval, and guardrails.
+  - `admin-backend`: Handles data-heavy tasks like document ingestion, embeddings, and analytics.
+  - `shared-core`: Local Python package for shared database models and AI logic.
 - **Database:** Supabase / PostgreSQL with `pgvector` for RAG capabilities
 - **LLM Engine:** Google Gemini 1.5 Flash via Google AI Studio
 
@@ -15,33 +18,36 @@ This project is designed to be deployed on a 100% free hobby stack:
 ### 1. Database (Supabase)
 1. Create a new project on [Supabase](https://supabase.com/).
 2. Navigate to the SQL Editor in your Supabase dashboard.
-3. Copy the contents of `backend/schema.sql` and run it to set up the necessary tables and enable the `pgvector` extension.
+3. Copy the contents of `student-backend/schema.sql` and run it to set up the necessary tables and enable the `pgvector` extension.
 4. Retrieve your Project URL and anon/service_role API Key from the project settings.
 
-### 2. Backend Setup
-1. Navigate to the `backend` directory:
+### 2. Backend Services Setup
+
+The backend is split into two microservices (`student-backend` and `admin-backend`) that share code via a local `shared-core` package.
+
+1. **Install Shared Core:**
+   The shared core is installed as an editable dependency (`-e ../shared-core`) within each backend's requirements.
+
+2. **Student Backend Setup:**
    ```bash
-   cd backend
-   ```
-2. Create a virtual environment and activate it:
-   ```bash
+   cd student-backend
    python3 -m venv venv
    source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
    pip install -r requirements.txt
+   cp .env.example .env  # Fill in GEMINI_API_KEY, SUPABASE_URL, SUPABASE_KEY
+   uvicorn main:app --reload --port 8000
    ```
-4. Create a `.env` file based on `.env.example`:
+
+3. **Admin Backend Setup:**
+   In a new terminal window:
    ```bash
-   cp .env.example .env
+   cd admin-backend
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   cp ../student-backend/.env .env  # Use the same credentials
+   uvicorn main:app --reload --port 8001
    ```
-5. Fill in the `.env` file with your `GEMINI_API_KEY`, `SUPABASE_URL`, and `SUPABASE_KEY`.
-6. Start the development server:
-   ```bash
-   uvicorn main:app --reload
-   ```
-   The backend will be available at `http://localhost:8000`.
 
 ### 3. Frontend Setup
 1. Navigate to the `frontend` directory:
@@ -60,15 +66,21 @@ This project is designed to be deployed on a 100% free hobby stack:
 
 ## Production Deployment
 
-### 1. Deploying the Backend (Render)
+### 1. Deploying the Backends (Render)
+
+You will need to create two "Web Services" on Render, one for the student API and one for the admin API.
+
 1. Create an account on [Render](https://render.com/) and click "New Web Service".
 2. Connect your GitHub repository.
-3. Set the following configuration:
-   - **Environment:** `Python 3`
+3. Set the following configuration for the **Student Backend**:
+   - **Root Directory:** `student-backend`
    - **Build Command:** `pip install -r requirements.txt`
    - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port 10000`
-4. Add your Environment Variables (`GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_KEY`).
-5. Click **Deploy Web Service**.
+4. Set the following configuration for the **Admin Backend**:
+   - **Root Directory:** `admin-backend`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port 10001`
+5. Add your Environment Variables (`GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_KEY`) to both services.
 
 ### 2. Deploying the Frontend (Vercel)
 1. Create an account on [Vercel](https://vercel.com/) and click "Add New Project".
